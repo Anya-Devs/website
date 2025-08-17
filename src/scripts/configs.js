@@ -195,9 +195,9 @@ class CommandsPage {
       const res = await fetch(jsonPath);
       if (!res.ok) throw new Error("Failed to fetch commands JSON");
       const data = await res.json();
-      return data.cogs || {};
+      return { prefix: data.prefix, cogs: data.cogs || {} };
     } catch {
-      return {};
+      return { prefix: ".", cogs: {} };
     }
   }
 
@@ -213,7 +213,7 @@ class CommandsPage {
     return sidebar;
   }
 
-  static createCommandSection(cogName, commands) {
+  static createCommandSection(cogName, commands, prefix) {
     const section = document.createElement("section");
     section.className = "cog-section";
     section.id = cogName;
@@ -240,7 +240,7 @@ class CommandsPage {
         examples.className = "examples";
         cmd.examples.forEach(ex => {
           const li = document.createElement("li");
-          li.textContent = `${ex.usage} → ${ex.description}`;
+          li.textContent = `${prefix}${ex.usage} → ${ex.description}`;
           examples.appendChild(li);
         });
         cmdDiv.appendChild(examples);
@@ -256,7 +256,7 @@ class CommandsPage {
     const zone = document.getElementById(containerId);
     if (!zone) return;
 
-    const cogs = await CommandsPage.loadCommands();
+    const { prefix, cogs } = await CommandsPage.loadCommands();
     if (!Object.keys(cogs).length) return;
 
     const wrapper = document.createElement("div");
@@ -269,7 +269,7 @@ class CommandsPage {
     content.className = "commands-content";
 
     Object.entries(cogs).forEach(([cogName, commands]) => {
-      const section = CommandsPage.createCommandSection(cogName, commands);
+      const section = CommandsPage.createCommandSection(cogName, commands, prefix);
       content.appendChild(section);
     });
 
