@@ -190,7 +190,7 @@ class PageLoader {
 // Commands Page (Inline)
 // =========================
 class CommandsPage {
-  static async loadCommands(jsonPath = "html/data/pages/commands.json") {
+  static async loadCommands(jsonPath = "src/data/pages/commands.json") {
     try {
       const res = await fetch(jsonPath);
       if (!res.ok) throw new Error("Failed to fetch commands JSON");
