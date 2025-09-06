@@ -4,20 +4,34 @@
     "Anime": [
       {
         "name": "anime",
-        "description": "Search for an anime by title.",
+        "description": "Search for an anime by title or get recommendations.",
         "args": "<title>",
         "hybrid": true,
-        "examples": [
-          { "usage": "anime Naruto", "description": "Searches for the anime 'Naruto'." }
-        ]
-      },
-      {
-        "name": "character",
-        "description": "Search for an anime character.",
-        "args": "<name>",
-        "hybrid": true,
-        "examples": [
-          { "usage": "character Mikasa", "description": "Searches for the character 'Mikasa'." }
+        "subcommands": [ 
+          {
+            "name": "search",
+            "description": "Search for an anime by title.",
+            "args": "<title>",
+            "examples": [
+              { "usage": "anime search Naruto", "description": "Searches for the anime 'Naruto'." }
+            ]
+          },
+          {
+            "name": "recommend",
+            "description": "Get a random anime recommendation.",
+            "args": "",
+            "examples": [
+              { "usage": "anime recommend", "description": "Provides a random anime recommendation." }
+            ]
+          },
+          {
+            "name": "character",
+            "description": "Search for an anime character by name.",
+            "args": "<name>",
+            "examples": [
+              { "usage": "anime character Mikasa", "description": "Searches for the character 'Mikasa'." }
+            ]
+          }
         ]
       },
       {
