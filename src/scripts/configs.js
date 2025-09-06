@@ -25,8 +25,8 @@ class AppConfig {
   constructor() {
     this.siteTitle = botConfig.botName;
     this.navLinks = [
-      { name: "Home", script: "scripts/homepage.js" },
-      { name: "Commands", script: null }, // handled inline
+      { name: "Home", id: "home" },
+      { name: "Commands", id: "commands" },
     ];
     this.hero = {
       title: "👋",
@@ -91,38 +91,41 @@ class LayoutElements {
       const a = document.createElement("a");
       a.href = "javascript:void(0)";
       a.textContent = link.name;
-      a.addEventListener("click", async e => {
+      a.dataset.pageId = link.id;
+      a.addEventListener("click", e => {
         e.preventDefault();
-        const zone = document.getElementById("dynamic-zone");
-        zone.replaceChildren();
-
-        if (link.name === "Commands") {
-          await CommandsPage.render("dynamic-zone");
-
-          // ==== Smooth Scroll Logic ====
-          const headerOffset = document.querySelector(".header")?.offsetHeight || 0;
-          const sidebarLinks = document.querySelectorAll(".sidebar a");
-          sidebarLinks.forEach(link => {
-            link.addEventListener("click", event => {
-              event.preventDefault();
-              const targetId = link.getAttribute("href").substring(1);
-              const targetEl = document.getElementById(targetId);
-              if (targetEl) {
-                const elementPosition = targetEl.getBoundingClientRect().top + window.pageYOffset;
-                const offsetPosition = elementPosition - headerOffset - 10; // 10px spacing
-                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-              }
-            });
-          });
-        } else if (link.script) {
-          await PageLoader.loadPage(link.script, "dynamic-zone");
-        }
+        LayoutElements.handleNavigation(link.id);
       });
       nav.appendChild(a);
     });
 
     header.append(logoContainer, nav);
     return header;
+  }
+
+  static handleNavigation(pageId) {
+    // Update active navigation state
+    document.querySelectorAll('.nav a').forEach(a => {
+      a.classList.remove('active');
+    });
+    document.querySelector(`.nav a[data-page-id="${pageId}"]`).classList.add('active');
+    
+    // Handle page content
+    if (pageId === "commands") {
+      // Hide hero and features, show commands in dynamic zone
+      document.querySelector('.hero').style.display = 'none';
+      document.querySelector('.features').style.display = 'none';
+      CommandsPage.render("dynamic-zone");
+    } else if (pageId === "home") {
+      // Show hero and features, clear dynamic zone
+      document.querySelector('.hero').style.display = 'flex';
+      document.querySelector('.features').style.display = 'grid';
+      const zone = document.getElementById("dynamic-zone");
+      zone.replaceChildren();
+      
+      // Scroll to top for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   static createHero(config) {
@@ -216,6 +219,17 @@ class CommandsPage {
       const cogLink = document.createElement("a");
       cogLink.href = `#${cogName}`;
       cogLink.textContent = cogName;
+      cogLink.addEventListener("click", event => {
+        event.preventDefault();
+        const targetId = cogLink.getAttribute("href").substring(1);
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          const headerOffset = document.querySelector(".header")?.offsetHeight || 0;
+          const elementPosition = targetEl.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - headerOffset - 10;
+          window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+        }
+      });
       sidebar.appendChild(cogLink);
     });
     return sidebar;
@@ -292,8 +306,15 @@ class CommandsPage {
   static async render(containerId = "dynamic-zone") {
     const zone = document.getElementById(containerId);
     if (!zone) return;
+    
+    // Show loading state
+    zone.innerHTML = "<p>Loading commands...</p>";
+    
     const { prefix, cogs } = await CommandsPage.loadCommands();
-    if (!Object.keys(cogs).length) return;
+    if (!Object.keys(cogs).length) {
+      zone.innerHTML = "<p>No commands found.</p>";
+      return;
+    }
 
     const wrapper = document.createElement("div");
     wrapper.className = "commands-wrapper dynamic-section";
@@ -310,7 +331,7 @@ class CommandsPage {
     });
 
     wrapper.appendChild(content);
-    zone.appendChild(wrapper);
+    zone.replaceChildren(wrapper);
   }
 }
 
@@ -337,10 +358,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     dynamic.id = "dynamic-zone";
     container.append(dynamic, LayoutElements.createFooter(cfg));
     container.setAttribute("data-layout-mounted", "true");
+    
+    // Set home as active by default
+    document.querySelector('.nav a[data-page-id="home"]').classList.add('active');
   }
-
-  const zone = document.getElementById("dynamic-zone");
-  await CommandsPage.render(zone.id);
 });
 
 // =========================
