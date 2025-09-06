@@ -26,7 +26,6 @@ class AppConfig {
     this.siteTitle = botConfig.botName;
     this.navLinks = [
       { name: "Home", script: "scripts/homepage.js" },
-      { name: "Dashboard", script: "scripts/dashboard.js" },
       { name: "Commands", script: null }, // handled inline
     ];
     this.hero = {
@@ -38,9 +37,7 @@ class AppConfig {
     this.features = [
       { title: "Poketwo Helper", desc: "Automatically names Poketwo Pokémon and provides Dex information." },
       { title: "User Engagement", desc: "Quests that get members chatting, using emojis, and making friends while earning rewards." },
-      { title: "Moderation", desc: "Kick, ban, warn, and manage your server with ease.", comingSoon: true },
       { title: "Fun Commands", desc: "Roll dice, hug members, gamble, and more." },
-      { title: "Music", desc: "Play music from YouTube and other sources.", comingSoon: true },
     ];
     this.footer = "© 2025 Anya Bot. All rights reserved.";
   }
@@ -71,11 +68,8 @@ class LayoutElements {
       document.querySelector("link[rel*='icon']") || document.createElement("link");
     favicon.rel = "icon";
     favicon.type = "image/png";
-    favicon.href = "https://cdn.discordapp.com/embed/avatars/0.png";
-    if (!document.querySelector("link[rel*='icon']")) {
-      document.head.appendChild(favicon);
-    }
-    // --- /FAVICON SETUP ---
+    favicon.href = botAvatar.src;
+    if (!document.querySelector("link[rel*='icon']")) document.head.appendChild(favicon);
 
     fetch(`https://discord.com/api/v10/applications/${botConfig.botId}/rpc`)
       .then(r => (r.ok ? r.json() : null))
@@ -83,7 +77,7 @@ class LayoutElements {
         if (botData && botData.icon) {
           const url = `https://cdn.discordapp.com/app-icons/${botConfig.botId}/${botData.icon}.png?size=256`;
           botAvatar.src = url;
-          favicon.href = url; // update tab icon too
+          favicon.href = url;
         }
       })
       .catch(err => console.warn("[Debug] Failed to fetch bot avatar / favicon:", err));
@@ -104,6 +98,22 @@ class LayoutElements {
 
         if (link.name === "Commands") {
           await CommandsPage.render("dynamic-zone");
+
+          // ==== Smooth Scroll Logic ====
+          const headerOffset = document.querySelector(".header")?.offsetHeight || 0;
+          const sidebarLinks = document.querySelectorAll(".sidebar a");
+          sidebarLinks.forEach(link => {
+            link.addEventListener("click", event => {
+              event.preventDefault();
+              const targetId = link.getAttribute("href").substring(1);
+              const targetEl = document.getElementById(targetId);
+              if (targetEl) {
+                const elementPosition = targetEl.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = elementPosition - headerOffset - 10; // 10px spacing
+                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+              }
+            });
+          });
         } else if (link.script) {
           await PageLoader.loadPage(link.script, "dynamic-zone");
         }
@@ -159,10 +169,8 @@ class PageLoader {
   static async loadPage(scriptPath, containerId = "dynamic-zone") {
     const container = document.getElementById(containerId);
     if (!container) return;
-
     const existing = document.querySelector(`script[data-dynamic="true"]`);
     if (existing) existing.remove();
-
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = scriptPath;
@@ -246,6 +254,35 @@ class CommandsPage {
         cmdDiv.appendChild(examples);
       }
 
+      if (cmd.subcommands?.length) {
+        cmd.subcommands.forEach(sub => {
+          const subDiv = document.createElement("div");
+          subDiv.className = "subcommand";
+
+          const subArgs = sub.args ? ` ${sub.args}` : "";
+          const subTitle = document.createElement("h4");
+          subTitle.textContent = sub.name + subArgs;
+          subDiv.appendChild(subTitle);
+
+          const subDesc = document.createElement("p");
+          subDesc.textContent = sub.description;
+          subDiv.appendChild(subDesc);
+
+          if (sub.examples?.length) {
+            const subExamples = document.createElement("ul");
+            subExamples.className = "examples";
+            sub.examples.forEach(ex => {
+              const li = document.createElement("li");
+              li.textContent = `${prefix}${ex.usage} → ${ex.description}`;
+              subExamples.appendChild(li);
+            });
+            subDiv.appendChild(subExamples);
+          }
+
+          cmdDiv.appendChild(subDiv);
+        });
+      }
+
       section.appendChild(cmdDiv);
     });
 
@@ -255,7 +292,6 @@ class CommandsPage {
   static async render(containerId = "dynamic-zone") {
     const zone = document.getElementById(containerId);
     if (!zone) return;
-
     const { prefix, cogs } = await CommandsPage.loadCommands();
     if (!Object.keys(cogs).length) return;
 
@@ -282,7 +318,6 @@ class CommandsPage {
 // Initialize Page
 // =========================
 window.addEventListener("DOMContentLoaded", async () => {
-  // 1. Ensure container
   let container = document.getElementById("app");
   if (!container) {
     container = document.createElement("div");
@@ -290,7 +325,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.body.appendChild(container);
   }
 
-  // 2. One-time layout injection
   if (!container.hasAttribute("data-layout-mounted")) {
     const cfg = new AppConfig();
     container.append(
@@ -299,15 +333,12 @@ window.addEventListener("DOMContentLoaded", async () => {
       LayoutElements.createFeatures(cfg)
     );
 
-    // create the **only** dynamic zone
     const dynamic = document.createElement("main");
     dynamic.id = "dynamic-zone";
     container.append(dynamic, LayoutElements.createFooter(cfg));
-
     container.setAttribute("data-layout-mounted", "true");
   }
 
-  // 3. Load commands immediately
   const zone = document.getElementById("dynamic-zone");
   await CommandsPage.render(zone.id);
 });

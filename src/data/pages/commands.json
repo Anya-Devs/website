@@ -22,11 +22,25 @@
       },
       {
         "name": "manga",
-        "description": "Search for a manga by title.",
-        "args": "<title>",
+        "description": "Manga-related commands.",
         "hybrid": true,
-        "examples": [
-          { "usage": "manga One Piece", "description": "Searches for the manga 'One Piece'." }
+        "subcommands": [
+          {
+            "name": "search",
+            "description": "Search for a manga by title.",
+            "args": "<title>",
+            "examples": [
+              { "usage": "manga search One Piece", "description": "Searches for the manga 'One Piece'." }
+            ]
+          },
+          {
+            "name": "read",
+            "description": "Read a manga chapter.",
+            "args": "<title>",
+            "examples": [
+              { "usage": "manga read Spy x Family", "description": "Reads 'Spy x Family' manga." }
+            ]
+          }
         ]
       }
     ],
@@ -58,14 +72,71 @@
       { "name": "roles", "description": "List roles in server.", "hybrid": true, "examples": [{ "usage": "roles", "description": "Displays all server roles." }] }
     ],
     "Pokemon": [
-      { "name": "pokedex", "description": "Search Pokémon in the Pokédex.", "hybrid": true, "examples": [{ "usage": "pokedex Pikachu", "description": "Shows information about Pikachu." }] }
-    ],
-    "Ping Pokemon": [
-      { "name": "tp", "description": "Ping for a type event.", "hybrid": true, "examples": [{ "usage": "tp", "description": "Displays type ping info." }] },
-      { "name": "qp", "description": "Ping for quest updates.", "hybrid": true, "examples": [{ "usage": "tp", "description": "Displays quest ping info." }] },
-      { "name": "shiny_hunt", "description": "Ping for shiny hunt events.", "hybrid": true, "examples": [{ "usage": "shiny_hunt", "description": "Displays shiny hunt info." }] },
-      { "name": "collection", "description": "Ping collection events.", "hybrid": true, "examples": [{ "usage": "collection", "description": "Displays collection event info." }] },
-      { "name": "server_config", "description": "Ping server config.", "hybrid": true, "examples": [{ "usage": "server_config", "description": "Displays server configuration info." }] }
+      {
+        "name": "pt",
+        "description": "Pokémon trainer utility commands.",
+        "hybrid": true,
+        "subcommands": [
+          {
+            "name": "cl",
+            "description": "Manage your Pokémon collection (max 50).",
+            "examples": [
+              { "usage": "pt cl add eevee, pikachu, vulpix", "description": "Add Pokémon to your collection." },
+              { "usage": "pt cl remove eevee, vulpix", "description": "Remove Pokémon from your collection." },
+              { "usage": "pt cl", "description": "View your collection." },
+              { "usage": "pt cl clear", "description": "Clear your collection." }
+            ]
+          },
+          {
+            "name": "sh",
+            "description": "Manage your shiny hunt.",
+            "examples": [
+              { "usage": "pt sh alolan vulpix", "description": "Set shiny hunt target." },
+              { "usage": "pt sh remove", "description": "Remove shiny hunt." },
+              { "usage": "pt sh", "description": "View shiny hunt." }
+            ]
+          },
+          {
+            "name": "tp",
+            "description": "Ping Pokémon types like fire, water, or grass.",
+            "examples": [
+              { "usage": "pt tp fire", "description": "Ping for Fire-type Pokémon." }
+            ]
+          },
+          {
+            "name": "qp",
+            "description": "Ping Pokémon quest regions like Kanto, Alola, Galar.",
+            "examples": [
+              { "usage": "pt qp alola", "description": "Ping for Alola region quests." }
+            ]
+          },
+          {
+            "name": "special",
+            "description": "Assign special roles for rare/regional Pokémon (requires Manage Server).",
+            "examples": [
+              { "usage": "pt special", "description": "Configure special roles." }
+            ]
+          },
+          {
+            "name": "starboard",
+            "description": "Configure starboard settings (requires Manage Channel).",
+            "examples": [
+              { "usage": "pt starboard", "description": "Configure starboard." }
+            ]
+          },
+          {
+            "name": "sc",
+            "description": "Shiny Protection channels and logging.",
+            "examples": [
+              { "usage": "pt sc", "description": "View shiny hunt channels." },
+              { "usage": "pt sc #channel", "description": "Protect a channel for shiny hunts." },
+              { "usage": "pt sc log #channel", "description": "Set shiny catch log channel." },
+              { "usage": "pt sc log remove", "description": "Remove shiny log channel." },
+              { "usage": "pt sc log", "description": "View current log channel." }
+            ]
+          }
+        ]
+      }
     ],
     "Quest": [
       { "name": "redirect", "description": "Redirect quest commands.", "hybrid": true, "examples": [{ "usage": "redirect", "description": "Redirects to relevant quest." }] },
