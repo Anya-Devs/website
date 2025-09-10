@@ -7,17 +7,8 @@ const botConfig = {
   description: "A Discord bot that helps manage your server and provides fun features.",
   inviteLink: "https://discord.com/oauth2/authorize?client_id=1234247716243112100&scope=bot&permissions=8",
   supportServer: "https://discord.com/oauth2/authorize?client_id=1234247716243112100&permissions=1689934541355072&integration_type=0&scope=bot",
-  redirectUri: "http://127.0.0.1:5500/auth/callback",
-  features: [
-    "Quest system",
-    "Fun commands",
-    "Poketwo Helper",
-    "Music playback",
-    "Moderation tools",
-    "Minigames",
-  ],
+  redirectUri: "http://127.0.0.1:5500/auth/callback"
 };
-
 // =========================
 // Site Config
 // =========================
@@ -34,9 +25,13 @@ class AppConfig {
       inviteText: "Invite Bot"
     };
     this.features = [
-      { title: "Poketwo Helper", desc: "Automatically names Poketwo Pokémon and provides Dex information." },
-      { title: "User Engagement", desc: "Quests that get members chatting, using emojis, and making friends while earning rewards." },
-      { title: "Fun Commands", desc: "Roll dice, hug members, gamble, and more." },
+      { title: "Anime", desc: "Search for anime, characters, or get recommendations." },
+      { title: "Manga", desc: "Find manga, search chapters, or read on the go." },
+      { title: "Fun", desc: "Express yourself with hugs, kisses, dances, and more fun commands." },
+      { title: "Information", desc: "Check roles, banners, reviews, server info, and more." },
+      { title: "Pokemon", desc: "Poketwo helper, Pokédex lookups, shiny hunts, and more." },
+      { title: "Quest", desc: "Track quests, balance coins, inventory, and rewards." },
+      { title: "System", desc: "See bot latency, uptime, memory usage, and ticket system." }
     ];
     this.footer = "© 2025 Anya Bot. All rights reserved.";
   }
@@ -111,7 +106,8 @@ class LayoutElements {
       CommandsPage.render("dynamic-zone");
     } else if (pageId === "home") {
       document.querySelector('.hero').style.display = 'flex';
-      document.querySelector('.features').style.display = 'grid';
+      const featuresSection = document.querySelector(".features.interactive-features");
+      if (featuresSection) featuresSection.style.display = "grid";
       const zone = document.getElementById("dynamic-zone");
       zone.replaceChildren();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -132,18 +128,7 @@ class LayoutElements {
   }
 
   static createFeatures(config) {
-    const features = document.createElement("section");
-    features.className = "features";
-    config.features.forEach(f => {
-      const div = document.createElement("div");
-      div.className = "feature";
-      div.innerHTML = `
-        <h3>${f.title}</h3>
-        <p>${f.desc}${f.coming ? '<span class="coming-soon">Coming Soon</span>' : ""}</p>
-      `;
-      features.appendChild(div);
-    });
-    return features;
+    return InteractiveFeatures.createFeatures(config);
   }
 
   static createFooter(config) {
@@ -155,40 +140,135 @@ class LayoutElements {
 }
 
 // =========================
-// Page Loader
+// 🌟 Enhanced Features with 3D Mouse Tracking & Thoughts
 // =========================
-class PageLoader {
-  static async loadPage(scriptPath, containerId = "dynamic-zone") {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    const existing = document.querySelector(`script[data-dynamic="true"]`);
-    if (existing) existing.remove();
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = scriptPath;
-      script.dataset.dynamic = "true";
-      script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = err => reject(err);
-      document.body.appendChild(script);
+class InteractiveFeatures {
+  static createFeatures(config) {
+    const features = document.createElement("section");
+    features.className = "features interactive-features";
+
+    config.features.forEach((f, i) => {
+      const card = document.createElement("div");
+      card.className = "feature-card";
+      card.innerHTML = `
+        <h3>${f.title}</h3>
+        <p>${f.desc}</p>
+      `;
+
+      const thought = document.createElement("div");
+      thought.className = "thought-bubble";
+      thought.textContent = InteractiveFeatures.getRandomThought(f.title);
+      card.appendChild(thought);
+
+      card.addEventListener("mousemove", e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const rotateX = (-y / rect.height) * 15;
+        const rotateY = (x / rect.width) * 15;
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.style.transform = "rotateX(0deg) rotateY(0deg) scale(1)";
+        thought.style.opacity = 0;
+      });
+
+      card.addEventListener("mouseenter", () => {
+        thought.style.opacity = 1;
+      });
+
+      features.appendChild(card);
     });
+
+    return features;
   }
 
-  static loadCSS(cssPath) {
-    if (!cssPath) return;
-    const existing = document.querySelector(`link[data-dynamic="true"]`);
-    if (existing) existing.remove();
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = cssPath;
-    link.dataset.dynamic = "true";
-    document.head.appendChild(link);
+  static getRandomThought(featureTitle) {
+    const thoughts = {
+      "Anime": [
+        "I wonder which anime character you’ll search for next...",
+        "Need a new series? I’ve got recommendations just for you!",
+        "Manga or anime... why not both?"
+      ],
+      "Manga": [
+        "Reading manga feels like uncovering hidden treasures!",
+        "Which manga chapter are you diving into today?",
+        "Some stories hit harder in manga form, don’t they?"
+      ],
+      "Fun": [
+        "Roll the dice, hug your friends, or just dance!",
+        "Express yourself with a kiss, hug, or even a playful slap!",
+        "I love seeing you smile with these fun commands!"
+      ],
+      "Information": [
+        "Knowledge is power—check roles, banners, and more!",
+        "Curious about the server? I’ve got the details!",
+        "Reviews help keep everything balanced and fair!"
+      ],
+      "Pokemon": [
+        "I can help you catch 'em all... almost like magic!",
+        "Did you know you can track your shiny hunts here?",
+        "Pokédex at your service—what Pokémon are you thinking of?"
+      ],
+      "Quest": [
+        "Quests are more fun with friends, don’t you think?",
+        "Check your balance—maybe it’s time to visit the shop!",
+        "Every quest completed brings new rewards!"
+      ],
+      "System": [
+        "I’m always online—well, almost. Want to check uptime?",
+        "Ping me anytime to see how fast I am!",
+        "Behind every bot is a little bit of memory magic."
+      ],
+      "Default": [
+        "I’m thinking about something...",
+        "Hmm... what should we do next?",
+        "I’ve got so many commands waiting for you!"
+      ] 
+    };
+    const arr = thoughts[featureTitle] || ["I’m thinking about something..."];
+    return arr[Math.floor(Math.random() * arr.length)];
   }
 }
 
 // =========================
-// Commands Page (Hover hint removed on click)
+// Enhanced CSS Injection
 // =========================
+const style = document.createElement("style");
+style.textContent = `
+.interactive-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  margin-top: 2rem;
+  perspective: 1000px;
+}
+.feature-card {
+  background: #1e1e2f;
+  padding: 1.2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+}
+.feature-card h3 { margin:0 0 0.5rem 0; font-size:1.2rem; color:#ffcc00;}
+.feature-card p { margin:0; font-size:0.95rem; color:#ddd;}
+.thought-bubble {
+  position:absolute; top:-35px; left:50%; transform:translateX(-50%);
+  background:rgba(255,255,255,0.1); backdrop-filter:blur(4px);
+  padding:0.4rem 0.8rem; border-radius:12px; font-size:0.85rem; color:#fff;
+  white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.3s ease;
+}
+.thought-bubble::after {
+  content:''; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
+  border-width:6px; border-style:solid; border-color: rgba(255,255,255,0.1) transparent transparent transparent;
+}
+`;
+document.head.appendChild(style);
+
 // =========================
 // Commands Page (Dropdown + copyable examples + JSON CSS)
 // =========================
