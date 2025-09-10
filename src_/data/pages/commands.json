@@ -88,12 +88,12 @@
     "Pokemon": [
       {
         "name": "pt",
-        "description": "Pokémon trainer utility commands.",
+        "description": "Pokémon Poketwo helper commands.",
         "hybrid": true,
         "subcommands": [
           {
             "name": "cl",
-            "description": "Manage your Pokémon collection (max 50).",
+            "description": "Manage your Poketwo Pokémon collection (max 50).",
             "examples": [
               { "usage": "pt cl add eevee, pikachu, vulpix", "description": "Add Pokémon to your collection." },
               { "usage": "pt cl remove eevee, vulpix", "description": "Remove Pokémon from your collection." },
@@ -114,14 +114,14 @@
             "name": "tp",
             "description": "Ping Pokémon types like fire, water, or grass.",
             "examples": [
-              { "usage": "pt tp fire", "description": "Ping for Fire-type Pokémon." }
+              { "usage": "pt tp", "description": "Ping for Pokémon-types ." }
             ]
           },
           {
             "name": "qp",
             "description": "Ping Pokémon quest regions like Kanto, Alola, Galar.",
             "examples": [
-              { "usage": "pt qp alola", "description": "Ping for Alola region quests." }
+              { "usage": "pt qp", "description": "Ping for regions." }
             ]
           },
           {
@@ -140,7 +140,7 @@
           },
           {
             "name": "sc",
-            "description": "Shiny Protection channels and logging.",
+            "description": "Shiny Protection channels and logging. (Poketwo)",
             "examples": [
               { "usage": "pt sc", "description": "View shiny hunt channels." },
               { "usage": "pt sc #channel", "description": "Protect a channel for shiny hunts." },

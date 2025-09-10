@@ -31,7 +31,6 @@ class AppConfig {
     this.hero = {
       title: "👋",
       subtitle: "Anya ventures into your server with multiple tools and quests to engage members, bringing communities closer together.",
-      buttonText: "Get Started",
       inviteText: "Invite Bot"
     };
     this.features = [
@@ -63,7 +62,6 @@ class LayoutElements {
     botAvatar.alt = `${config.siteTitle} Avatar`;
     botAvatar.src = "https://cdn.discordapp.com/embed/avatars/0.png";
 
-    // --- FAVICON SETUP ---
     const favicon =
       document.querySelector("link[rel*='icon']") || document.createElement("link");
     favicon.rel = "icon";
@@ -104,27 +102,19 @@ class LayoutElements {
   }
 
   static handleNavigation(pageId) {
-    // Update active navigation state
-    document.querySelectorAll('.nav a').forEach(a => {
-      a.classList.remove('active');
-    });
+    document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
     document.querySelector(`.nav a[data-page-id="${pageId}"]`).classList.add('active');
-    
-    // Handle page content
+
     if (pageId === "commands") {
-      // Hide hero and features, show commands in dynamic zone
       document.querySelector('.hero').style.display = 'none';
       document.querySelector('.features').style.display = 'none';
       CommandsPage.render("dynamic-zone");
     } else if (pageId === "home") {
-      // Show hero and features, clear dynamic zone
       document.querySelector('.hero').style.display = 'flex';
       document.querySelector('.features').style.display = 'grid';
       const zone = document.getElementById("dynamic-zone");
       zone.replaceChildren();
-      
-      // Scroll to top for better UX
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
@@ -135,7 +125,6 @@ class LayoutElements {
       <h2>${config.hero.title}</h2>
       <p>${config.hero.subtitle}</p>
       <div class="hero-buttons">
-        <button class="cta">${config.hero.buttonText}</button>
         <a href="${botConfig.inviteLink}" target="_blank" class="cta">${config.hero.inviteText}</a>
       </div>
     `;
@@ -198,44 +187,98 @@ class PageLoader {
 }
 
 // =========================
-// Commands Page (Inline)
+// Commands Page (Hover hint removed on click)
+// =========================
+// =========================
+// Commands Page (Dropdown + copyable examples + JSON CSS)
 // =========================
 class CommandsPage {
-  static async loadCommands(jsonPath = "src/data/pages/commands.json") {
+  static async loadCommands(jsonPath = "src_/data/pages/commands.json") {
     try {
       const res = await fetch(jsonPath);
       if (!res.ok) throw new Error("Failed to fetch commands JSON");
       const data = await res.json();
-      return { prefix: data.prefix, cogs: data.cogs || {} };
+      return { prefix: data.prefix, cogs: data.cogs || {}, css: data.css || {} };
     } catch {
-      return { prefix: ".", cogs: {} };
+      return { prefix: ".", cogs: {}, css: {} };
     }
   }
 
-  static createSidebar(cogs) {
-    const sidebar = document.createElement("aside");
-    sidebar.className = "sidebar";
-    Object.keys(cogs).forEach(cogName => {
-      const cogLink = document.createElement("a");
-      cogLink.href = `#${cogName}`;
-      cogLink.textContent = cogName;
-      cogLink.addEventListener("click", event => {
-        event.preventDefault();
-        const targetId = cogLink.getAttribute("href").substring(1);
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) {
-          const headerOffset = document.querySelector(".header")?.offsetHeight || 0;
-          const elementPosition = targetEl.getBoundingClientRect().top + window.pageYOffset;
-          const offsetPosition = elementPosition - headerOffset - 10;
-          window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-        }
-      });
-      sidebar.appendChild(cogLink);
-    });
-    return sidebar;
+  static injectSubcommandCSS(cssOverrides = {}) {
+    if (document.getElementById("subcommand-css")) return;
+
+    const style = document.createElement("style");
+    style.id = "subcommand-css";
+
+    style.textContent = `
+      .subcommand {
+        display: flex;
+        flex-direction: column;
+        padding: ${cssOverrides.padding || "0.75rem 1rem"};
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        border-radius: 6px;
+        position: relative;
+      }
+
+      .subcommand:hover {
+        background: ${cssOverrides.hoverBg || "rgba(255,255,255,0.03)"};
+      }
+
+      .subcommand-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .subcommand .examples {
+        display: none;
+        margin-top: ${cssOverrides.examplesMarginTop || "0.5rem"};
+        padding-left: 1rem;
+        max-width: 100%;
+        overflow-x: auto;
+      }
+
+      .subcommand.active .examples {
+        display: block;
+      }
+
+      .subcommand .dropdown-icon {
+        transition: transform 0.2s ease;
+      }
+
+      .subcommand.active .dropdown-icon {
+        transform: rotate(90deg);
+      }
+
+      .examples li {
+        cursor: pointer;
+        margin-bottom: 0.25rem;
+        word-break: break-word;
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+      }
+
+      .examples li:hover {
+        background: ${cssOverrides.exampleHoverBg || "rgba(255,255,255,0.05)"};
+      }
+
+      code {
+        font-family: monospace;
+        background: rgba(255,255,255,0.05);
+        padding: 0.1rem 0.25rem;
+        border-radius: 4px;
+      }
+    `;
+
+    document.head.appendChild(style);
   }
 
-  static createCommandSection(cogName, commands, prefix) {
+  static createCommandSection(cogName, commands, prefix, cssOverrides = {}) {
+    CommandsPage.injectSubcommandCSS(cssOverrides);
+
     const section = document.createElement("section");
     section.className = "cog-section";
     section.id = cogName;
@@ -262,39 +305,80 @@ class CommandsPage {
         examples.className = "examples";
         cmd.examples.forEach(ex => {
           const li = document.createElement("li");
-          li.textContent = `${prefix}${ex.usage} → ${ex.description}`;
+          li.innerHTML = `<code>${prefix}${ex.usage}</code> → ${ex.description}`;
+          li.addEventListener("click", e => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(`${prefix}${ex.usage}`);
+            li.style.background = cssOverrides.copiedBg || "rgba(0,255,0,0.1)";
+            setTimeout(() => li.style.background = "", 300);
+          });
           examples.appendChild(li);
         });
         cmdDiv.appendChild(examples);
       }
 
       if (cmd.subcommands?.length) {
+        const subcommandsContainer = document.createElement("div");
+        subcommandsContainer.className = "subcommands-container";
+
         cmd.subcommands.forEach(sub => {
           const subDiv = document.createElement("div");
           subDiv.className = "subcommand";
+          subDiv.setAttribute("data-subcommand", "true");
+
+          const header = document.createElement("div");
+          header.className = "subcommand-header";
+
+          const left = document.createElement("div");
+          left.style.flex = "1";
 
           const subArgs = sub.args ? ` ${sub.args}` : "";
           const subTitle = document.createElement("h4");
           subTitle.textContent = sub.name + subArgs;
-          subDiv.appendChild(subTitle);
+          left.appendChild(subTitle);
 
           const subDesc = document.createElement("p");
           subDesc.textContent = sub.description;
-          subDiv.appendChild(subDesc);
+          left.appendChild(subDesc);
+
+          header.appendChild(left);
+
+          const icon = document.createElement("span");
+          icon.className = "dropdown-icon";
+          icon.textContent = "▶"; // arrow symbol
+          header.appendChild(icon);
+
+          subDiv.appendChild(header);
 
           if (sub.examples?.length) {
             const subExamples = document.createElement("ul");
             subExamples.className = "examples";
             sub.examples.forEach(ex => {
               const li = document.createElement("li");
-              li.textContent = `${prefix}${ex.usage} → ${ex.description}`;
+              li.innerHTML = `<code>${prefix}${ex.usage}</code> → ${ex.description}`;
+              li.addEventListener("click", e => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(`${prefix}${ex.usage}`);
+                li.style.background = cssOverrides.copiedBg || "rgba(0,255,0,0.1)";
+                setTimeout(() => li.style.background = "", 300);
+              });
               subExamples.appendChild(li);
             });
             subDiv.appendChild(subExamples);
           }
 
-          cmdDiv.appendChild(subDiv);
+          subDiv.addEventListener("click", e => {
+            e.stopPropagation();
+            document.querySelectorAll(".subcommand.active").forEach(active => {
+              if (active !== subDiv) active.classList.remove("active");
+            });
+            subDiv.classList.toggle("active");
+          });
+
+          subcommandsContainer.appendChild(subDiv);
         });
+
+        cmdDiv.appendChild(subcommandsContainer);
       }
 
       section.appendChild(cmdDiv);
@@ -306,11 +390,10 @@ class CommandsPage {
   static async render(containerId = "dynamic-zone") {
     const zone = document.getElementById(containerId);
     if (!zone) return;
-    
-    // Show loading state
+
     zone.innerHTML = "<p>Loading commands...</p>";
-    
-    const { prefix, cogs } = await CommandsPage.loadCommands();
+
+    const { prefix, cogs, css } = await CommandsPage.loadCommands();
     if (!Object.keys(cogs).length) {
       zone.innerHTML = "<p>No commands found.</p>";
       return;
@@ -326,19 +409,43 @@ class CommandsPage {
     content.className = "commands-content";
 
     Object.entries(cogs).forEach(([cogName, commands]) => {
-      const section = CommandsPage.createCommandSection(cogName, commands, prefix);
+      const section = CommandsPage.createCommandSection(cogName, commands, prefix, css);
       content.appendChild(section);
     });
 
     wrapper.appendChild(content);
     zone.replaceChildren(wrapper);
   }
+
+  static createSidebar(cogs) {
+    const sidebar = document.createElement("aside");
+    sidebar.className = "sidebar";
+    Object.keys(cogs).forEach(cogName => {
+      const cogLink = document.createElement("a");
+      cogLink.href = `#${cogName}`;
+      cogLink.textContent = cogName;
+      cogLink.addEventListener("click", e => {
+        e.preventDefault();
+        const targetId = cogLink.getAttribute("href").substring(1);
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          const offset = document.querySelector(".header")?.offsetHeight || 0;
+          const top = targetEl.getBoundingClientRect().top + window.pageYOffset - offset - 10;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+      });
+      sidebar.appendChild(cogLink);
+    });
+    return sidebar;
+  }
 }
+
+
 
 // =========================
 // Initialize Page
 // =========================
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", () => {
   let container = document.getElementById("app");
   if (!container) {
     container = document.createElement("div");
@@ -358,8 +465,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     dynamic.id = "dynamic-zone";
     container.append(dynamic, LayoutElements.createFooter(cfg));
     container.setAttribute("data-layout-mounted", "true");
-    
-    // Set home as active by default
+
     document.querySelector('.nav a[data-page-id="home"]').classList.add('active');
   }
 });
