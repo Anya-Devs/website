@@ -29,7 +29,7 @@ class AppConfig {
       { name: "Commands", id: "commands" },
     ];
     this.hero = {
-      title: "👋",
+      title: "🥜",
       subtitle: "Anya ventures into your server with multiple tools and quests to engage members, bringing communities closer together.",
       inviteText: "Invite Bot"
     };
