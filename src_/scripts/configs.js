@@ -400,8 +400,10 @@ body {
   text-decoration: none;
   border-radius: 8px;
   font-weight: bold;
-  transition: all var(--transition-speed) ease;
+  transition: transform 0.3s ease, background 0.3s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
 .hero-buttons .cta.secondary {
@@ -411,12 +413,23 @@ body {
 }
 
 .hero-buttons .cta:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 7px 20px rgba(255, 204, 0, 0.4);
+  transform: translateY(-2px);
+  /* remove glow, subtle shadow only */
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
-.hero-buttons .cta.secondary:hover {
-  background: rgba(255, 204, 0, 0.1);
+/* Mirror reflection effect */
+.hero-buttons .cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: transform 0.3s ease;
 }
 
 .hero-image {
@@ -742,6 +755,10 @@ code {
     width: 100%;
     text-align: center;
   }
+    
+  .hero-buttons .cta::before {
+   transform: translate(calc(var(--px, 50) - 50%), calc(var(--py, 50) - 50%));
+   }
 }
 /* ========== CLEAN ANYA BOT IMMERSIVE STYLES ========== */
 :root {
@@ -1457,6 +1474,26 @@ window.addEventListener("DOMContentLoaded", () => {
 
     document.querySelector('.nav a[data-page-id="home"]').classList.add('active');
   }
+});
+
+
+// JS to move the mirror gradient with cursor
+document.querySelectorAll('.hero-buttons .cta').forEach(button => {
+  button.addEventListener('mousemove', e => {
+    const rect = button.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const px = (x / rect.width) * 100;
+    const py = (y / rect.height) * 100;
+    button.style.setProperty('--px', px);
+    button.style.setProperty('--py', py);
+    button.querySelector('::before'); // pseudo cannot be directly accessed, use CSS variables
+  });
+
+  button.addEventListener('mouseleave', () => {
+    button.style.setProperty('--px', 50);
+    button.style.setProperty('--py', 50);
+  });
 });
 
 // =========================
