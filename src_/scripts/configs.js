@@ -24,7 +24,7 @@ class AppConfig {
       title: "Welcome to Anya Bot",
       subtitle: "Anya ventures into your server with multiple tools and quests to engage members, bringing communities closer together.",
       inviteText: "Invite Bot",
-      tagline: "🥜 Your friendly neighborhood bot"
+      tagline: "🥜 Bringing communities together since 2024"
     };
     this.features = [
       { title: "Anime", desc: "Search for anime, characters, or get recommendations.", icon: "🎭" },
